@@ -255,7 +255,7 @@ async function finishWorkout(w){
   clearInterval(clockTimer); wakeOff(); hideRest(); renderSummary(w,entry,d,t); show("summary");
 }
 function renderSummary(w,e,d,t){
-  const msgs=["Nice work, Sarah.","Strong session.","That's how it's done.","Consistency is the whole secret.","Your future self says thanks."];
+  const msgs=["Nice work, Cookie.","Strong session.","That's how it's done.","Consistency is the whole secret.","Your future self says thanks."];
   $("#sum-msg").textContent=`${msgs[S().sessions.length%msgs.length]} ${w.name} is in the books.`;
   $("#sum-stats").innerHTML=`<div><b>${fmtClock(e.dur)}</b><span>time</span></div><div><b>${d}</b><span>of ${t} sets</span></div><div><b>${e.volume.toLocaleString()}</b><span>kg lifted</span></div>`;
   $("#sum-list").innerHTML=`<h3 style="font-size:17px;margin-bottom:6px">What you did</h3>`+e.sets.map(x=>{
