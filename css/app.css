@@ -161,6 +161,8 @@ details.cues .alt{font-size:14px;color:var(--ink-2);margin-top:8px}
 .dlg .acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
+/* During a workout the rest timer owns the bottom of the screen, so notes sit above it. */
+body.in-workout .toast{bottom:calc(158px + env(safe-area-inset-bottom))}
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(241,238,248,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
 .nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
@@ -244,3 +246,54 @@ table.data td:last-child,table.data th:last-child{text-align:right}
 .rule:first-of-type{border-top:0}
 .rule b{flex:none;width:96px;font-weight:700}.rule span{color:var(--ink-2);font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---- a little cheer partway through a workout ---- */
+/* Sits just below the sticky workout header so it never hides the title or the clock,
+   and takes its natural single-line width until the screen runs out. */
+.cheer{position:fixed;left:50%;top:calc(78px + env(safe-area-inset-top));transform:translate(-50%,-190%);z-index:75;
+  background:var(--ink);color:#fff;border-radius:22px;padding:11px 17px;font-weight:700;font-size:14.5px;line-height:1.3;
+  display:flex;align-items:center;gap:9px;box-shadow:0 8px 28px rgba(31,26,46,.32);
+  width:max-content;max-width:calc(100vw - 30px);
+  transition:transform .38s cubic-bezier(.2,.9,.25,1.1),opacity .25s;opacity:0;pointer-events:none;text-align:left}
+.cheer.on{transform:translate(-50%,0);opacity:1}
+.cheer .ci{font-size:19px;flex:none;line-height:1}
+.cheer span{min-width:0}
+
+/* ---- the well done window ---- */
+.celebrate{position:fixed;inset:0;z-index:85;background:rgba(20,16,32,.55);display:none;align-items:center;justify-content:center;padding:22px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.celebrate.on{display:flex}
+.celebrate .box{background:var(--card);border-radius:26px;padding:28px 22px 22px;max-width:360px;width:100%;text-align:center;
+  box-shadow:0 24px 60px rgba(31,26,46,.35);animation:pop .42s cubic-bezier(.2,.9,.25,1.15) both}
+@keyframes pop{from{opacity:0;transform:scale(.86) translateY(14px)}to{opacity:1;transform:none}}
+.celebrate .burst{font-size:46px;line-height:1;margin-bottom:10px;animation:rise .55s .06s cubic-bezier(.2,.9,.25,1.2) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.7)}to{opacity:1;transform:none}}
+.celebrate h2{font-size:27px;font-weight:800;letter-spacing:-0.03em;line-height:1.1}
+.celebrate h2 .heart{color:var(--accent);font-size:0.62em;vertical-align:0.3em;margin-left:6px;display:inline-block;transform:rotate(-8deg)}
+.celebrate .said{color:var(--ink-2);font-size:16px;margin-top:8px}
+.celebrate .line{display:flex;gap:8px;margin:16px 0 4px}
+.celebrate .line div{flex:1;background:var(--paper);border-radius:14px;padding:10px 6px}
+.celebrate .line b{display:block;font-size:19px;font-weight:800;letter-spacing:-0.03em}
+.celebrate .line span{font-size:11.5px;color:var(--ink-2)}
+.newtrophy{display:flex;align-items:center;gap:11px;background:var(--accent-soft);border-radius:16px;padding:11px 13px;margin-top:10px;text-align:left;
+  animation:rise .5s both}
+.newtrophy .ti{font-size:27px;flex:none;line-height:1}
+.newtrophy b{display:block;font-size:15.5px;color:var(--accent-ink)}
+.newtrophy span{display:block;font-size:12.5px;color:var(--accent-ink);opacity:.85}
+.newtrophy .tag{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent-ink);opacity:.75}
+
+/* ---- the trophy shelf ---- */
+.trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.trophy{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 8px 11px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:3px;width:100%}
+.trophy .tico{font-size:29px;line-height:1.15;filter:grayscale(1);opacity:.32}
+.trophy b{font-size:13px;font-weight:700;line-height:1.2;color:var(--ink-2)}
+.trophy span{font-size:11.5px;color:var(--ink-3)}
+.trophy.earned{border-color:#f3b8cc;background:linear-gradient(180deg,var(--accent-soft),var(--card) 78%)}
+.trophy.earned .tico{filter:none;opacity:1}
+.trophy.earned b{color:var(--ink)}
+.trophy.earned span{color:var(--accent-ink);font-weight:600}
+.trophy .bar{width:100%;height:4px;border-radius:99px;background:var(--grid);overflow:hidden;margin-top:3px}
+.trophy .bar i{display:block;height:100%;background:var(--ink-3);border-radius:99px}
+.tcount{font-size:13px;color:var(--ink-2);margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){.celebrate .box,.celebrate .burst,.newtrophy{animation:none!important}}

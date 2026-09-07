@@ -31,6 +31,26 @@ function slots(w){const out=[];w.blocks.forEach((b,bi)=>{ if(b.ss) b.ss.forEach(
   else out.push({key:bi+"_0",ex:b.ex,sets:b.sets,reps:b.reps,rest:b.rest,bi,ei:0,ss:false,last:true,hold:b.hold,note:b.note}); }); return out;}
 const S=()=>Store.s;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2400);}
+/* A warm little banner that drops in partway through a workout. */
+let cheerT=null;
+function cheer(icon,text){
+  const el=$("#cheer"); $("#cheer-icon").textContent=icon; $("#cheer-text").textContent=text;
+  el.classList.add("on"); primeAudio(); chime("soft");
+  clearTimeout(cheerT); cheerT=setTimeout(()=>el.classList.remove("on"),3800);
+}
+const CHEERS=[
+  {at:0.25, icon:"🌙", msg:"A quarter down ya amaar. Lovely start."},
+  {at:0.50, icon:"🌸", msg:"Halfway there, keep it up ya amaar"},
+  {at:0.75, icon:"🔥", msg:"Three quarters done. Nearly there ya amaar."}
+];
+function milestoneCheer(w){
+  const sl=slots(w), sess=S().session; let d=0,t=0;
+  sl.forEach(x=>sess.sets[x.key].forEach(r=>{t++;if(r.done)d++;}));
+  if(!t) return false;
+  const now=d/t, before=(d-1)/t;
+  for(const m of CHEERS){ if(before<m.at && now>=m.at){ cheer(m.icon,m.msg); return true; } }
+  return false;
+}
 function confirmDlg(title,text,yes){return new Promise(res=>{const d=$("#dlg");$("#dlg-title").textContent=title;$("#dlg-text").textContent=text;$("#dlg-yes").textContent=yes||"Yes";d.classList.add("on");
   const done=v=>{d.classList.remove("on");$("#dlg-yes").onclick=null;$("#dlg-no").onclick=null;res(v);};$("#dlg-yes").onclick=()=>done(true);$("#dlg-no").onclick=()=>done(false);});}
 let actx=null, master=null;
@@ -253,8 +273,9 @@ function toggleMini(btn,secs,onDone){ if(btn._t){clearInterval(btn._t);btn._t=nu
   btn._t=setInterval(()=>{ const l=Math.ceil((end-Date.now())/1000); if(l<=0){clearInterval(btn._t);btn._t=null;btn.classList.remove("run");btn.textContent="Done";chime("soft");onDone&&onDone();} else btn.textContent=fmtClock(l); },250); }
 function afterSet(w,slot,i){
   const sl=slots(w), sess=S().session;
-  if(sl.every(x=>sess.sets[x.key].every(r=>r.done))){ hideRest(); toast("That's everything. Finish when you're ready."); return; }
-  if(!slot.last){ const p=sl.find(x=>x.bi===slot.bi&&x.ei===slot.ei+1); toast("Straight into "+EX[p.ex].name); return; }
+  if(sl.every(x=>sess.sets[x.key].every(r=>r.done))){ hideRest(); cheer("🎀","That is every set done ya amaar. Finish when you are ready."); return; }
+  const cheered=milestoneCheer(w);
+  if(!slot.last){ const p=sl.find(x=>x.bi===slot.bi&&x.ei===slot.ei+1); if(!cheered) toast("Straight into "+EX[p.ex].name); return; }
   let nextName;
   if(i===slot.sets-1){ const idx=sl.findIndex(x=>x.key===slot.key); let j=idx+1; while(j<sl.length&&sess.sets[sl[j].key].every(r=>r.done)) j++; nextName=j<sl.length?EX[sl[j].ex].name:"the finish line"; }
   else nextName=`set ${i+2} of ${slot.ss?"the superset":EX[slot.ex].name}`;
@@ -281,8 +302,11 @@ async function finishWorkout(w){
     recs.forEach(r=>{ if(!EX[x.ex].bw) vol+=(r.w||0)*(r.r||0); });
     s.last[x.ex]={ts:ended,sets:recs}; });
   entry.volume=Math.round(vol);
+  const had=Trophies.earnedIds(s.sessions);
   s.sessions.push(entry); s.cycle=wIndex(w.id)+1; s.session=null; Store.save();
+  const fresh=Trophies.all(s.sessions).filter(x=>x.earned&&had.indexOf(x.id)<0);
   clearInterval(clockTimer); wakeOff(); hideRest(); renderSummary(w,entry,d,t); show("summary");
+  celebrate(entry,d,t,fresh);
 }
 function renderSummary(w,e,d,t){
   const msgs=["Nice work, Cookie.","Strong session.","That's how it's done.","Consistency is the whole secret.","Your future self says thanks."];
@@ -293,6 +317,17 @@ function renderSummary(w,e,d,t){
     return `<div class="exline"><div class="t"><b>${esc(EX[x.ex].name)}</b><span>${x.sets.map(y=>fmtSet(x.ex,y)).join(", ")}</span></div><span class="tiny">best ${fmtSet(x.ex,best)}</span></div>`;
   }).join("")+`<p class="small muted" style="margin-top:12px">Next time: <b>${esc(WORKOUTS[S().cycle%6].name)}</b>.</p>`;
 }
+function celebrate(e,d,t,fresh){
+  $("#celebrate-burst").textContent = fresh.length?"🏆":"🎉";
+  $("#celebrate-said").textContent = d===t ? "You did it all for today."
+    : `You got through ${d} of the ${t} sets. That still counts, ya amaar.`;
+  $("#celebrate-line").innerHTML=`<div><b>${fmtClock(e.dur)}</b><span>time</span></div><div><b>${d}</b><span>sets</span></div><div><b>${e.volume.toLocaleString()}</b><span>kg lifted</span></div>`;
+  $("#celebrate-trophies").innerHTML=fresh.map((x,i)=>`<div class="newtrophy" style="animation-delay:${(0.18+i*0.14).toFixed(2)}s"><span class="ti">${x.icon}</span><span><span class="tag">New trophy</span><b>${esc(x.name)}</b><span>${esc(x.blurb)}</span></span></div>`).join("");
+  $("#celebrate").classList.add("on"); primeAudio(); chime();
+}
+function closeCelebrate(){ $("#celebrate").classList.remove("on"); }
+$("#celebrate-ok").onclick=closeCelebrate;
+$("#celebrate").addEventListener("click",e=>{ if(e.target.id==="celebrate") closeCelebrate(); });
 $("#sum-home").onclick=()=>{ renderHome(); show("home"); };
 $("#sum-progress").onclick=()=>{ renderProgress(); show("progress"); };
 
@@ -355,7 +390,11 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("#modal").classL
 const weekKey=ts=>{ const d=new Date(ts); const day=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-day); return d.getTime(); };
 function renderProgress(){
   const s=S(), hist=[...s.sessions].sort((a,b)=>a.ended-b.ended);
-  if(!hist.length){ $("#prog-body").innerHTML=`<div class="empty"><b>Nothing to show yet</b>Finish a workout and your progress starts here.</div>`; return; }
+  if(!hist.length){
+    $("#prog-body").innerHTML=`<div class="empty"><b>Nothing to show yet</b>Finish a workout and your progress starts here.</div>
+      <div class="section"><h2>Trophies</h2><p class="tcount" id="tcount"></p><div class="trophies" id="troph"></div></div>`;
+    renderTrophies([]); return;
+  }
   const now=Date.now();
   const thisWeek=hist.filter(h=>weekKey(h.ended)===weekKey(now)).length;
   const totalVol=hist.reduce((a,h)=>a+(h.volume||0),0);
@@ -380,7 +419,9 @@ function renderProgress(){
     <div class="chartcard"><h3>Sets per muscle</h3><div class="sub">Last four weeks</div><div id="ch-muscle"></div></div>
     <div class="chartcard"><h3>Turning up</h3><div class="sub">Last 12 weeks. Filled means trained.</div><div id="ch-cal"></div>
       <div class="legend"><span><i></i>Trained</span><span><i style="background:var(--cal-missed)"></i>Training day missed</span><span><i style="background:var(--cal-rest)"></i>Rest day</span></div></div>
+    <div class="section"><h2>Trophies</h2><p class="tcount" id="tcount"></p><div class="trophies" id="troph"></div></div>
     <div class="section"><h2>Recent workouts</h2><div id="prog-hist"></div></div>`;
+  renderTrophies(hist);
 
   /* strength: one exercise at a time, chosen from the ones she has actually logged */
   const logged={}; hist.forEach(h=>h.sets.forEach(b=>{ (logged[b.ex]=logged[b.ex]||[]).push({t:h.ended,sets:b.sets}); }));
@@ -425,6 +466,17 @@ function renderProgress(){
       <div class="d">${fmtClock(h.dur)} long, ${h.sets.reduce((a,x)=>a+x.sets.length,0)} sets, ${Math.round(h.volume||0).toLocaleString()} kg</div>
       <details><summary>Sets</summary><table class="data">${h.sets.map(x=>`<tr><td>${esc(EX[x.ex]?EX[x.ex].name:x.ex)}</td><td>${x.sets.map(y=>fmtSet(x.ex,y)).join(", ")}</td></tr>`).join("")}</table></details></div>`; }).join("");
   $$("#prog-body .tablebtn").forEach(b=>b.onclick=()=>{ const t=$("#tb-"+b.dataset.table); t.hidden=!t.hidden; b.textContent=t.hidden?"Show the numbers":"Hide the numbers"; });
+}
+function renderTrophies(hist){
+  const list=Trophies.all(hist), got=list.filter(x=>x.earned).length;
+  $("#tcount").textContent=`${got} of ${list.length} earned`;
+  $("#troph").innerHTML=list.map(x=>`<button class="trophy ${x.earned?"earned":""}" data-t="${x.id}">
+      <span class="tico">${x.icon}</span><b>${esc(x.name)}</b>
+      <span>${x.earned?new Date(x.earnedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short"}):x.have+" of "+x.need}</span>
+      ${x.earned?"":`<span class="bar"><i style="width:${Math.round(100*x.have/x.need)}%"></i></span>`}
+    </button>`).join("");
+  $$("#troph .trophy").forEach(b=>b.onclick=()=>{ const x=list.find(y=>y.id===b.dataset.t);
+    toast(x.earned?x.blurb:`${x.name}: ${x.have} of ${x.need}${x.unit?" "+x.unit:""}`); });
 }
 let resizeT=null;
 window.addEventListener("resize",()=>{ if(current!=="progress")return; clearTimeout(resizeT); resizeT=setTimeout(renderProgress,250); });
