@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f1a2e">
+<meta name="description" content="Sarah's training plan: push, pull, legs and Arnold's split, with set tracking, rest timers, form videos and progress charts.">
+<title>Sarah's Training Plan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sarah's Plan">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="sync" id="sync" hidden></div>
+
+<!-- ============ AUTH ============ -->
+<section id="s-auth" class="screen">
+  <div class="auth">
+    <div class="display" style="color:var(--ink)">Sarah's<br>plan</div>
+    <p class="muted" style="margin-top:10px">Sign in once and every workout is backed up, so a new phone picks up exactly where you left off.</p>
+    <h2 id="auth-title" style="margin-top:26px;font-size:20px">Welcome back</h2>
+    <form id="auth-form" data-mode="in">
+      <label for="auth-email">Email</label>
+      <input id="auth-email" type="email" autocomplete="email" required>
+      <label for="auth-pw">Password</label>
+      <input id="auth-pw" type="password" autocomplete="current-password" minlength="6" required>
+      <p class="err" id="auth-err"></p>
+      <button class="btn btn-accent btn-block" id="auth-submit" type="submit" style="margin-top:16px">Sign in</button>
+    </form>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+      <button class="link" id="auth-skip" type="button" style="padding:10px">Just use it on this phone</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOME ============ -->
+<section id="s-home" class="screen">
+  <div class="wrap">
+    <div class="top"><h1>Hey Sarah</h1><div class="date" id="home-date"></div></div>
+    <div class="hero" id="hero"></div>
+    <div class="section"><h2>This week</h2><div class="sched" id="sched"></div><p class="tiny" style="margin-top:8px" id="schednote"></p></div>
+    <div class="section"><h2>Pick a workout</h2><div class="wlist" id="picker"></div></div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="s-plan" class="screen">
+  <div class="wrap plan">
+    <div class="top"><h1>The plan</h1></div>
+    <div class="card">
+      <p><b>Three days a week, six workouts that rotate.</b> Saturday, Monday and Wednesday. Every two weeks you have done all six.</p>
+      <p><b>Week A</b> is push, pull, legs. <b>Week B</b> is Arnold's split: chest with back, shoulders with arms, then legs again with a glute and hamstring focus.</p>
+      <p>Machines and cables wherever they do the job as well as free weights, so setting up is quick and the form looks after itself.</p>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="rule"><b>How heavy</b><span>The last rep of each set should be hard but clean, with one or two reps left in the tank. Never grind or lose form.</span></div>
+      <div class="rule"><b>Progress</b><span>When you hit the top of the rep range on every set, add a little weight next time. The app tells you when.</span></div>
+      <div class="rule"><b>Rest</b><span>Follow the timer. Big lifts get 90 to 120 seconds, isolation gets 45 to 60. Resting properly lets you lift more.</span></div>
+      <div class="rule"><b>Warm up</b><span>Do the list every session. Before the first heavy lift, do one or two light sets too.</span></div>
+      <div class="rule"><b>Videos</b><span>Every exercise has a short clip of a female trainer showing the movement. Watch it before your first set until it feels natural.</span></div>
+      <div class="rule"><b>Busy gym</b><span>If a machine is taken, each exercise lists an alternative under the form cues.</span></div>
+      <div class="rule"><b>Missed a day</b><span>Just do the next workout in the rotation on your next gym day. The order matters more than the calendar.</span></div>
+    </div>
+    <div class="section"><h2>Week A</h2><div class="wlist" id="plan-a"></div>
+      <h2 style="margin-top:20px">Week B</h2><div class="wlist" id="plan-b"></div></div>
+  </div>
+</section>
+
+<!-- ============ PLAN DETAIL ============ -->
+<section id="s-detail" class="screen">
+  <div class="wrap">
+    <div class="wtop"><button class="back" id="detail-back" aria-label="Back">‹</button><div class="ttl" id="detail-ttl"></div></div>
+    <div id="detail-body"></div>
+    <div style="margin-top:20px"><button class="btn btn-accent btn-block" id="detail-start">Start this workout</button></div>
+  </div>
+</section>
+
+<!-- ============ WORKOUT ============ -->
+<section id="s-workout" class="screen">
+  <div class="wrap">
+    <div class="wtop"><button class="back" id="w-exit" aria-label="Leave workout">‹</button><div class="ttl" id="w-ttl"></div><div class="clock" id="w-clock">0:00</div></div>
+    <div class="whero"><div class="display word" id="w-word"></div><div class="sub" id="w-sub"></div>
+      <div class="progress"><i id="w-prog"></i></div><div class="tiny" id="w-progtxt"></div></div>
+    <div id="w-body"></div>
+    <div class="finish"><button class="btn btn-ink btn-block" id="w-finish">Finish workout</button></div>
+  </div>
+</section>
+
+<!-- ============ SUMMARY ============ -->
+<section id="s-summary" class="screen">
+  <div class="wrap">
+    <div class="sumhero"><div class="display word">Done.</div><p id="sum-msg"></p></div>
+    <div class="sumstats" id="sum-stats"></div>
+    <div class="card" style="margin-top:14px" id="sum-list"></div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-accent btn-block" id="sum-progress">See my progress</button>
+      <button class="btn btn-ink btn-block" id="sum-home">Back to home</button></div>
+  </div>
+</section>
+
+<!-- ============ PROGRESS ============ -->
+<section id="s-progress" class="screen">
+  <div class="wrap"><div class="top"><h1>Progress</h1></div><div id="prog-body"></div></div>
+</section>
+
+<!-- ============ YOU ============ -->
+<section id="s-you" class="screen">
+  <div class="wrap"><div class="top"><h1>You</h1></div><div id="you-body"></div></div>
+</section>
+
+<!-- ============ REST SHEET ============ -->
+<div class="sheet" id="sheet" role="status" aria-live="polite">
+  <div class="box">
+    <div class="ring">
+      <svg width="88" height="88" viewBox="0 0 92 92"><circle cx="46" cy="46" r="40" stroke="#3a3153" stroke-width="7" fill="none"/><circle id="ring-arc" cx="46" cy="46" r="40" stroke="#e0336e" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0"/></svg>
+      <div class="num" id="ring-num">90</div>
+    </div>
+    <div class="info"><b id="sheet-title">Rest</b><span id="sheet-sub">Next: …</span>
+      <div class="acts"><button id="rest-add">+30 s</button><button id="rest-skip">Skip</button></div></div>
+  </div>
+</div>
+
+<!-- ============ VIDEO ============ -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Form video">
+  <div class="bar"><b id="modal-title">Video</b><button class="x" id="modal-close" aria-label="Close">✕</button></div>
+  <div class="frame"><video id="modal-video" controls playsinline webkit-playsinline preload="none" loop></video></div>
+  <div class="credit" id="modal-credit"></div>
+</div>
+
+<!-- ============ CONFIRM ============ -->
+<div class="dlg" id="dlg">
+  <div class="box"><h3 id="dlg-title"></h3><p id="dlg-text"></p>
+    <div class="acts"><button class="btn btn-ghost btn-sm" id="dlg-no">Cancel</button><button class="btn btn-ink btn-sm" id="dlg-yes">Yes</button></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="nav"><div class="in">
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Plan</button>
+  <button data-tab="progress"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16v-5M11 16V7M16 16v-8M21 16v-3"/></svg>Progress</button>
+  <button data-tab="you"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>You</button>
+</div></nav>
+
+<script src="js/config.js"></script>
+<script src="js/supabase.umd.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

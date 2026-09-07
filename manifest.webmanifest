@@ -1,0 +1,17 @@
+{
+  "name": "Sarah's Training Plan",
+  "short_name": "Sarah's Plan",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1eef8",
+  "theme_color": "#1f1a2e",
+  "description": "Push, pull, legs and Arnold's split with set tracking, rest timers, form videos and progress charts.",
+  "icons": [
+    {"src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
