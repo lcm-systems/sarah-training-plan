@@ -39,7 +39,7 @@ h1,h2,h3{font-weight:700;line-height:1.1;letter-spacing:-0.01em}
    top right never sits on top of the date. */
 .top{margin-bottom:16px;padding-right:96px;min-height:34px}
 .top h1{font-size:30px;font-weight:800;letter-spacing:-0.03em}
-.top h1 .heart{color:var(--accent);font-size:0.5em;margin-left:7px;vertical-align:0.62em;display:inline-block;transform:rotate(-8deg)}
+.top h1 .heart{color:var(--accent);font-size:0.66em;margin-left:8px;vertical-align:0.34em;display:inline-block;transform:rotate(-8deg)}
 .date{color:var(--ink-2);font-size:15px;margin-top:2px}
 /* hero */
 .hero{background:var(--ink);color:var(--paper);border-radius:22px;padding:22px}
