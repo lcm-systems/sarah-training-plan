@@ -33,10 +33,40 @@ const S=()=>Store.s;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2400);}
 function confirmDlg(title,text,yes){return new Promise(res=>{const d=$("#dlg");$("#dlg-title").textContent=title;$("#dlg-text").textContent=text;$("#dlg-yes").textContent=yes||"Yes";d.classList.add("on");
   const done=v=>{d.classList.remove("on");$("#dlg-yes").onclick=null;$("#dlg-no").onclick=null;res(v);};$("#dlg-yes").onclick=()=>done(true);$("#dlg-no").onclick=()=>done(false);});}
-let actx=null;
-function primeAudio(){try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();}catch(e){}}
-function beep(n){n=n||3;try{if(actx){let t=actx.currentTime;for(let i=0;i<n;i++){const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=i===n-1?1046:880;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.25);t+=.3;}}}catch(e){}
-  try{navigator.vibrate&&navigator.vibrate([180,80,180,80,300]);}catch(e){}}
+let actx=null, master=null;
+function primeAudio(){
+  try{
+    if(!actx){
+      actx=new (window.AudioContext||window.webkitAudioContext)();
+      master=actx.createGain(); master.gain.value=0.3; master.connect(actx.destination);
+    }
+    if(actx.state==="suspended") actx.resume();
+  }catch(e){}
+}
+/* One note of a music box: a soft swell rather than a click, then a long fade. */
+function note(freq,at,peak,dur){
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type="sine"; o.frequency.setValueAtTime(freq,at);
+  g.gain.setValueAtTime(0.0001,at);
+  g.gain.exponentialRampToValueAtTime(peak,at+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,at+dur);
+  o.connect(g); g.connect(master); o.start(at); o.stop(at+dur+0.05);
+}
+/* A kind little chime, not an alarm: three notes of one chord rising, each with a
+   quiet octave on top for sparkle. "soft" is the shorter two-note version used when
+   a warm-up drill or a plank finishes. */
+function chime(kind){
+  try{
+    if(actx&&master){
+      const t=actx.currentTime+0.02;
+      const notes = kind==="soft" ? [1174.66,1567.98] : [1046.50,1318.51,1567.98];
+      notes.forEach((f,i)=>{ const at=t+i*0.15; note(f,at,0.5,0.9); note(f*2,at,0.1,0.55); });
+    }
+  }catch(e){}
+  /* A couple of light taps. Android buzzes; iPhone browsers ignore this. */
+  try{ navigator.vibrate && navigator.vibrate(kind==="soft" ? [22,70,22] : [26,80,26,80,40]); }catch(e){}
+}
+const beep=chime;
 let wake=null;
 async function wakeOn(){try{if("wakeLock" in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>{wake=null;});}}catch(e){}}
 function wakeOff(){try{wake&&wake.release();}catch(e){}wake=null;}
@@ -203,7 +233,7 @@ function bindWorkout(w){
         holdRepeat($(".dec",stp),()=>bump(-1)); holdRepeat($(".inc",stp),()=>bump(1)); });
       const hb=$(".holdbtn",row); if(hb) hb.onclick=()=>{ if(hb.classList.contains("run")||rec.done)return; const secs=+hb.dataset.hold, end=Date.now()+secs*1000;
         hb.classList.add("run"); hb.textContent=secs+" s";
-        const t=setInterval(()=>{ const l=Math.ceil((end-Date.now())/1000); if(l<=0){ clearInterval(t); hb.classList.remove("run"); beep(2); rec.r=String(secs); rec.done=true; Store.save({quiet:true}); afterSet(w,slot,i); renderWorkoutBody(w); } else hb.textContent=l+" s"; },250); };
+        const t=setInterval(()=>{ const l=Math.ceil((end-Date.now())/1000); if(l<=0){ clearInterval(t); hb.classList.remove("run"); chime("soft"); rec.r=String(secs); rec.done=true; Store.save({quiet:true}); afterSet(w,slot,i); renderWorkoutBody(w); } else hb.textContent=l+" s"; },250); };
       $(".done",row).onclick=()=>{
         if(!rec.done){ const vw=$('.stp[data-f="w"] .val',row), vr=$('.stp[data-f="r"] .val',row);
           if(vw) rec.w=parseFloat(vw.textContent)||0; if(vr) rec.r=parseInt(vr.textContent,10)||0;
@@ -220,7 +250,7 @@ function bindWorkout(w){
 }
 function toggleMini(btn,secs,onDone){ if(btn._t){clearInterval(btn._t);btn._t=null;btn.classList.remove("run");btn.textContent=fmtClock(secs);return;}
   const end=Date.now()+secs*1000; btn.classList.add("run");
-  btn._t=setInterval(()=>{ const l=Math.ceil((end-Date.now())/1000); if(l<=0){clearInterval(btn._t);btn._t=null;btn.classList.remove("run");btn.textContent="Done";beep(2);onDone&&onDone();} else btn.textContent=fmtClock(l); },250); }
+  btn._t=setInterval(()=>{ const l=Math.ceil((end-Date.now())/1000); if(l<=0){clearInterval(btn._t);btn._t=null;btn.classList.remove("run");btn.textContent="Done";chime("soft");onDone&&onDone();} else btn.textContent=fmtClock(l); },250); }
 function afterSet(w,slot,i){
   const sl=slots(w), sess=S().session;
   if(sl.every(x=>sess.sets[x.key].every(r=>r.done))){ hideRest(); toast("That's everything. Finish when you're ready."); return; }
@@ -275,7 +305,7 @@ function startRest(secs,label){ rest.end=Date.now()+secs*1000; rest.total=secs; 
 function tickRest(){ if(!rest.on)return; const left=(rest.end-Date.now())/1000;
   $("#ring-arc").style.strokeDashoffset=String(251.3*(1-Math.max(0,Math.min(1,left/rest.total))));
   $("#ring-num").textContent=left>0?fmtClock(Math.ceil(left)):"Go";
-  if(left<=0){ clearInterval(rest.timer); rest.on=false; beep(); $("#sheet").classList.add("finished"); $("#sheet-title").textContent="Rest over"; $("#rest-skip").textContent="Ready"; setTimeout(()=>{ if(!rest.on) hideRest(); },6000); } }
+  if(left<=0){ clearInterval(rest.timer); rest.on=false; chime(); $("#sheet").classList.add("finished"); $("#sheet-title").textContent="Rest over"; $("#rest-skip").textContent="Ready"; setTimeout(()=>{ if(!rest.on) hideRest(); },6000); } }
 function hideRest(){ clearInterval(rest.timer); rest.on=false; $("#sheet").classList.remove("on"); }
 $("#rest-add").onclick=()=>{ if(!rest.on){ startRest(30,$("#sheet-sub").textContent.replace(/^Next: /,"")); return; } rest.end+=30000; rest.total+=30; $("#sheet").classList.remove("finished"); rest.on=true; clearInterval(rest.timer); rest.timer=setInterval(tickRest,200); tickRest(); };
 $("#rest-skip").onclick=hideRest;
