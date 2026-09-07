@@ -15,7 +15,13 @@ function shell(mount){
   mount.appendChild(box); box.appendChild(tip);
   return {box,tip};
 }
-function showTip(box,tip,x,y,html){ tip.innerHTML=html; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.classList.add("on"); }
+/* Keep the bubble inside the card: the newest point sits at the right edge and
+   that is exactly the one she will look at. */
+function showTip(box,tip,x,y,html){
+  tip.innerHTML=html; tip.style.top=y+"px"; tip.classList.add("on");
+  const half=tip.offsetWidth/2+2, w=box.clientWidth;
+  tip.style.left=Math.round(Math.max(half,Math.min(w-half,x)))+"px";
+}
 function hideTip(tip){ tip.classList.remove("on"); }
 /* "nice" axis top so the gridlines land on round numbers */
 function niceMax(v){ if(v<=0) return 1; const p=Math.pow(10,Math.floor(Math.log10(v))); const f=v/p; const n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10; return n*p; }
