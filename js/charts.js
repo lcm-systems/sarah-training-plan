@@ -104,7 +104,7 @@ function calendar(mount,days,opts){
   const wrap=document.createElement("div"); wrap.className="cal";
   const weeks=[]; for(let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
   weeks.forEach(w=>{ const col=document.createElement("div"); col.className="calcol";
-    w.forEach(d=>{ const c=document.createElement("div"); c.className="calcell"+(d.trained?" on":(d.planned?" rest":""));
+    w.forEach(d=>{ const c=document.createElement("div"); c.className="calcell"+(d.trained?" on":(d.planned?" missed":""));
       c.title=`${d.label}: ${d.trained?"trained":(d.planned?"training day, missed":"rest day")}`;
       c.addEventListener("mouseenter",()=>{ const r=c.getBoundingClientRect(), b=box.getBoundingClientRect();
         showTip(box,tip,r.left-b.left+r.width/2,r.top-b.top,`${d.trained?(d.name||"Trained"):(d.planned?"Missed":"Rest day")}<small>${d.label}</small>`); });

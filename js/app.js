@@ -341,7 +341,7 @@ function renderProgress(){
       <button class="link tablebtn" data-table="volume">Show the numbers</button><div id="tb-volume" hidden></div></div>
     <div class="chartcard"><h3>Sets per muscle</h3><div class="sub">Last four weeks</div><div id="ch-muscle"></div></div>
     <div class="chartcard"><h3>Turning up</h3><div class="sub">Last 12 weeks. Filled means trained.</div><div id="ch-cal"></div>
-      <div class="legend"><span><i></i>Trained</span><span><i style="background:#e4dff1"></i>Training day missed</span><span><i style="background:var(--grid)"></i>Rest day</span></div></div>
+      <div class="legend"><span><i></i>Trained</span><span><i style="background:var(--cal-missed)"></i>Training day missed</span><span><i style="background:var(--cal-rest)"></i>Rest day</span></div></div>
     <div class="section"><h2>Recent workouts</h2><div id="prog-hist"></div></div>`;
 
   /* strength: one exercise at a time, chosen from the ones she has actually logged */
