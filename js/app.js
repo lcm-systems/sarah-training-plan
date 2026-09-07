@@ -285,14 +285,19 @@ $("#rest-skip").onclick=hideRest;
    address. A signed link is fetched on demand and the file is kept in the
    browser cache afterwards, which is what makes the gym work with no signal.
    If the app is served with a local video folder, that is used instead. */
-const clipUrls={};
+const clipUrls={}, blobUrls={};
 async function clipUrl(kind,ex){
   const localPath=kind+"/"+ex+(kind==="video"?".mp4":".jpg");
   if((window.SARAH_CONFIG||{}).LOCAL_CLIPS) return localPath;
   /* Anything already on the phone wins, even if a signed link was handed out
-     earlier in this session. Otherwise saving the videos and then losing signal
-     would still try the network. */
-  try{ const c=await caches.open("sarah-video-v1"); if(await c.match(localPath)) return localPath; }catch(e){}
+     earlier in this session. The file is read straight out of the store and played
+     from memory, so it does not matter whether the offline worker is running. */
+  const bk=kind+":"+ex;
+  if(blobUrls[bk]) return blobUrls[bk];
+  try{
+    const c=await caches.open("sarah-video-v1"); const hit=await c.match(localPath);
+    if(hit){ const url=URL.createObjectURL(await hit.blob()); blobUrls[bk]=url; return url; }
+  }catch(e){}
   const k=kind+":"+ex, memo=clipUrls[k];
   if(memo&&memo.exp>Date.now()) return memo.url;
   const sb=Store.sb();
@@ -434,6 +439,7 @@ async function cacheVideos(){
   for(const ex of ids){
     try{ const u=await clipUrl("video",ex); const res=await fetch(u); if(res.ok) await c.put("video/"+ex+".mp4",res); }catch(e){}
     try{ const p=await clipUrl("poster",ex); const res=await fetch(p); if(res.ok) await c.put("poster/"+ex+".jpg",res); }catch(e){}
+    delete clipUrls["video:"+ex]; delete clipUrls["poster:"+ex];
     n++; note.textContent=`Saving… ${n} of ${ids.length}`; }
   btn.disabled=false; note.textContent=`All ${ids.length} videos are on this phone.`; toast("Videos saved for offline");
 }
