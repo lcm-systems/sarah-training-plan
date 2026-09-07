@@ -14,7 +14,7 @@ const DEFS=[
  {id:"stronger",icon:"💪", name:"Stronger already", blurb:"You put more weight on a lift than last time. That is the whole point.",
   test:s=>!!s.strongerAt,  have:s=>s.strongerAt?1:0,    need:1, unit:""},
  {id:"cycle1", icon:"🔁", name:"Full circle",      blurb:"All six workouts done. You have now trained every muscle the plan covers.",
-  test:s=>s.cycles>=1,     have:s=>s.cycles?6:s.inCycle, need:6, unit:"of the six workouts"},
+  test:s=>s.cycles>=1,     have:s=>s.cycles?6:s.inCycle, need:6, unit:"different workouts"},
  {id:"ten",    icon:"⭐", name:"Ten in the bank",  blurb:"Ten workouts finished. This is starting to look like a habit.",
   test:s=>s.count>=10,     have:s=>s.count,             need:10, unit:"workouts"},
  {id:"month",  icon:"🔥", name:"A month of turning up", blurb:"Four weeks in a row without dropping off. Consistency beats everything.",
