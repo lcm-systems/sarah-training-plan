@@ -1,6 +1,6 @@
 /* Offline support. The app shell is cached on install so the gym's dead spots
    never stop a workout; videos are cached the first time they are watched. */
-const SHELL="sarah-shell-v12", VIDEO="sarah-video-v1";
+const SHELL="sarah-shell-v13", VIDEO="sarah-video-v1";
 const FILES=["./","index.html","manifest.webmanifest","css/app.css","js/config.js","js/supabase.umd.js","js/data.js","js/charts.js","js/trophies.js","js/store.js","js/app.js","fonts/Bricolage-400.ttf","fonts/Bricolage-700.ttf","fonts/Bricolage-800.ttf","icons/icon-180.png","icons/icon-192.png","icons/icon-512.png"];
 self.addEventListener("install",e=>{ e.waitUntil(caches.open(SHELL).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate",e=>{ e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==SHELL&&k!==VIDEO).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
