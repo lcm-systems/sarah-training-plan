@@ -288,14 +288,17 @@ $("#rest-skip").onclick=hideRest;
 const clipUrls={};
 async function clipUrl(kind,ex){
   const localPath=kind+"/"+ex+(kind==="video"?".mp4":".jpg");
-  const k=kind+":"+ex;
-  if(clipUrls[k]) return clipUrls[k];
-  if((window.SARAH_CONFIG||{}).LOCAL_CLIPS) return (clipUrls[k]=localPath);
-  try{ const c=await caches.open("sarah-video-v1"); if(await c.match(localPath)) return (clipUrls[k]=localPath); }catch(e){}
+  if((window.SARAH_CONFIG||{}).LOCAL_CLIPS) return localPath;
+  /* Anything already on the phone wins, even if a signed link was handed out
+     earlier in this session. Otherwise saving the videos and then losing signal
+     would still try the network. */
+  try{ const c=await caches.open("sarah-video-v1"); if(await c.match(localPath)) return localPath; }catch(e){}
+  const k=kind+":"+ex, memo=clipUrls[k];
+  if(memo&&memo.exp>Date.now()) return memo.url;
   const sb=Store.sb();
   if(sb&&Store.user){
     try{ const {data,error}=await sb.storage.from((window.SARAH_CONFIG||{}).CLIP_BUCKET||"clips").createSignedUrl(localPath,60*60*6);
-      if(!error&&data&&data.signedUrl) return (clipUrls[k]=data.signedUrl); }catch(e){}
+      if(!error&&data&&data.signedUrl){ clipUrls[k]={url:data.signedUrl,exp:Date.now()+5*60*60*1000}; return data.signedUrl; } }catch(e){}
   }
   return localPath;
 }
